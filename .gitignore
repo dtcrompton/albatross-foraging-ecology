@@ -1,0 +1,27 @@
+# Data files (too large for git)
+data/raw/*
+data/processed/*
+data/environmental/*
+
+# Keep directory structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/environmental/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Environment
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Outputs (commit figures/maps but not large artwork files)
+outputs/artwork/*.tif
+outputs/artwork/*.png
