@@ -17,7 +17,7 @@ Output:
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import HeatMap, MiniMap, MeasureControl
+from folium.plugins import HeatMap, MeasureControl
 from pathlib import Path
 
 Path('outputs/maps').mkdir(parents=True, exist_ok=True)
@@ -109,12 +109,17 @@ print("\nBuilding base map...")
 m = folium.Map(
     location=[CAMPBELL_LAT, CAMPBELL_LON + 11],
     zoom_start=4,
-    tiles='CartoDB positron',
+    tiles=None,
     prefer_canvas=True,
 )
 
-# Add minimap and measure control for usability
-MiniMap(toggle_display=True).add_to(m)
+folium.TileLayer(
+    tiles="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_3v0u_1_4c9d5c04c3cacfcff5b8cd1e",
+    attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    name="CARTO Light"
+).add_to(m)
+
+# Add measure control for usability
 MeasureControl(position='topleft', primary_length_unit='kilometers').add_to(m)
 
 
