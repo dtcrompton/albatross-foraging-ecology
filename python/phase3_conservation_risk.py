@@ -19,6 +19,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 from scipy.stats import gaussian_kde
@@ -304,17 +305,21 @@ month_names = ['Jan','Feb','Mar','Apr','May','Jun',
 # --- Panel 1: KDE foraging hotspot map ---
 ax1 = fig.add_subplot(2, 2, 1, facecolor='#e8f4f8')
 
-# Convert back for plotting: longitudes > 180 → subtract 360
-# Plot KDE as filled contours
-level_percentiles = np.linspace(10, 99, 12)
-levels = np.percentile(ZZ[ZZ > 0], level_percentiles)
-# Display only: extend='max' fills the densest area above the top level, and one colour
-# step per level gives a visible gradient across levels that span many orders of magnitude
-cf = ax1.contourf(LON_MESH, LAT_MESH, ZZ, levels=levels,
-                  cmap='YlOrRd', alpha=0.85, extend='max',
-                  norm=mcolors.BoundaryNorm(levels, ncolors=256, extend='max'))
-ax1.contour(LON_MESH, LAT_MESH, ZZ, levels=levels,
-            colors='white', alpha=0.3, linewidths=0.5)
+# Highest-density regions, for display only: the smallest real-world areas holding each
+# share of the density. ZZ is per square degree, so a cell's mass is ZZ x its degree area.
+# Its real-world area scales with cos(latitude), so cells are ranked by mass per unit area.
+cell_mass = ZZ * (lon_grid[1] - lon_grid[0]) * (lat_grid[1] - lat_grid[0])
+mass_per_area = ZZ / np.cos(np.radians(LAT_MESH))
+rank_order = np.argsort(mass_per_area.ravel())[::-1]
+ranked_values = mass_per_area.ravel()[rank_order]
+cumulative_mass = np.cumsum(cell_mass.ravel()[rank_order]) / cell_mass.sum()
+
+HDR_COLOURS = {90: '#FDD0A2', 75: '#FD8D3C', 50: '#A63603'}  # one hue, darkest for 50%
+hdr_levels = [ranked_values[np.searchsorted(cumulative_mass, share / 100)]
+              for share in HDR_COLOURS]
+ax1.contourf(LON_MESH, LAT_MESH, mass_per_area,
+             levels=hdr_levels + [mass_per_area.max() * 1.01],
+             colors=list(HDR_COLOURS.values()))
 
 # Campbell Island (in 0-360 space it's at 169°)
 ax1.scatter(COLONY_LON, COLONY_LAT, c=DARK_TEXT, s=200, marker='*',
@@ -326,21 +331,23 @@ ax1.axhline(y=-60, color=MAUVE, linestyle='--', linewidth=1.5,
             label='CCAMLR boundary (60°S)', alpha=0.8)
 
 # Fix x-axis tick labels: convert 0-360 back to ±180 for display
-xticks = [120, 150, 180, 210, 240, 270, 300]
+xticks = [160, 170, 180, 190, 200, 210, 220]
 xlabels = [f'{t}°E' if t <= 180 else f'{360-t}°W' for t in xticks]
+ax1.set_xlim(155, 220)  # display only: the KDE grid is unchanged
 ax1.set_xticks(xticks)
 ax1.set_xticklabels(xlabels, fontsize=9, color=DARK_TEXT)
 ax1.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)
 ax1.set_title('Foraging Hotspots (KDE)', fontsize=13,
               fontweight='bold', color=DARK_TEXT, pad=10)
-ax1.legend(fontsize=9, frameon=True, framealpha=0.8, loc='upper right')
+hdr_handles = [mpatches.Patch(color=HDR_COLOURS[share], label=f'{share}% of density')
+               for share in (50, 75, 90)]
+ax1.legend(handles=hdr_handles + ax1.get_legend_handles_labels()[0],
+           fontsize=9, frameon=True, framealpha=0.8, loc='upper right')
 ax1.tick_params(colors=DARK_TEXT)
-
-# The levels span about 250 orders of magnitude, so no single scale can label them
-# (it printed 0.000 repeatedly). Label each level by the percentile that defines it.
-cb = plt.colorbar(cf, ax=ax1, label='Foraging density (percentile of non-zero grid cells)', shrink=0.8)
-cb.set_ticks(levels)
-cb.set_ticklabels([f'{p:.0f}' for p in level_percentiles])
+ax1.text(0.5, -0.075,
+         'Kernel density of foraging fixes. Shading marks the smallest areas '
+         'holding 50%, 75% and 90% of the density.',
+         transform=ax1.transAxes, ha='center', fontsize=9.5, color=DARK_TEXT)
 
 # --- Panel 2: Management zone breakdown ---
 ax2 = fig.add_subplot(2, 2, 2, facecolor='white')
@@ -439,7 +446,7 @@ fig.text(
     ha='center', fontsize=8, color=MID_GREY, style='italic'
 )
 
-plt.tight_layout()
+plt.tight_layout(h_pad=3)  # room for the caption under the KDE panel
 plt.savefig('outputs/figures/phase3_risk_analysis.png', dpi=150,
             bbox_inches='tight', facecolor='white')
 print("  ✓ Saved: outputs/figures/phase3_risk_analysis.png")
