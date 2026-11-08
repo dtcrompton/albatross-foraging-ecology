@@ -21,7 +21,7 @@ Using movement ecology methods and satellite-derived oceanographic data, this pr
 ---
 
 ## Data Correction (8 November 2026)
-Bird 90494's timestamps in the source file, as downloaded from the Movebank Data Repository, had day and month swapped on 3,056 fixes (3.3% of the data). The same swap appears in that bird's deployment date in the Movebank reference data. The swap was repaired using event-id order, the source file is unchanged, the repair script (`python/phase0_repair_dates.py`) and rule are in this repository, and the pipeline was rerun. An earlier version of this README reported a 274-day trip and a complete breeding year, both of which were artefacts of the swap.
+Bird 90494's timestamps in the source file, as downloaded from the Movebank Data Repository, had day and month swapped on 3,056 fixes (3.3% of the data). The deployment date recorded for that bird in the Movebank reference data (2013-01-11) is also inconsistent with its tracking period. The swap was repaired using event-id order, the source file is unchanged, the repair script (`python/phase0_repair_dates.py`) and rule are in this repository, and the pipeline was rerun. An earlier version of this README reported a 274-day trip and a complete breeding year, both of which were artefacts of the swap.
 
 ---
 

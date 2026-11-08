@@ -551,3 +551,10 @@ Flanders Marine Institute (2023). Maritime Boundaries Geodatabase: Maritime Boun
 12. **Boundary line 1289:** does not lie on either polygon it names (see `outputs_v3/eez/eez_report.md`). It is not used by the map's outlines except through the ring filter, and is not near any fix.
 13. **Licence file request:** it asks users not to make its products available for download elsewhere. The map embeds simplified outlines with the credit; the source files are not committed.
 14. **Later fixes in the second commit:** `centres_group.add_to(m)` and the filter that keeps baselines out of the EEZ ring test are in the foraging-centre commit, not the first script commit.
+
+## Later changes
+
+These supersede the matching text above.
+
+1. **Foraging-centre markers hidden again.** The line `centres_group.add_to(m)` was removed, so the map again shows no foraging-centre markers or popups, as before this work. The circular-mean values stay in `bird_profiles.csv` and `bird_risk_profiles.csv`. The README map-layers sentence no longer lists foraging centres. The map was regenerated, and the copies in `outputs/maps/` and `outputs_v3/portfolio_assets/`, plus `MANIFEST.md`, were refreshed.
+2. **README data correction wording.** "The same swap appears in that bird's deployment date in the Movebank reference data." was replaced with "The deployment date recorded for that bird in the Movebank reference data (2013-01-11) is also inconsistent with its tracking period."
