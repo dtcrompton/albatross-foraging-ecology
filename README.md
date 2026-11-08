@@ -16,7 +16,7 @@ Using movement ecology methods and satellite-derived oceanographic data, this pr
 
 - **Temporal synchrony index: 0.295.** It is computed against all CCAMLR longline effort worldwide with no area filter and is not a measure of overlap.
 
-- **K-means clustering** of four foraging-strategy metrics gives cluster sizes of 13 low, 8 medium and 3 high risk. The high-risk cluster is birds 2, 89518 and 90493, with maximum distances of 2,319 to 2,713 km and total distances of 9,713 to 12,285 km. The clustering uses no fishing data.
+- **K-means clustering** of four foraging-strategy metrics gives three foraging-strategy groups: A (13 birds), B (8 birds) and C (3 birds). Group C is birds 2, 89518 and 90493, with maximum distances of 2,319 to 2,713 km and total distances of 9,713 to 12,285 km. The groups use no fishing data.
 
 ---
 
@@ -58,14 +58,16 @@ Monthly SST and chlorophyll-a downloaded from NOAA CoastWatch ERDDAP via direct 
 **Scripts:** `python/phase2b_environmental_drivers.py`  
 **Outputs:** `data/processed/tracks_with_env.csv`, `data/environmental/sst_2013.nc`, `data/environmental/chla_2013.nc`
 
-### Phase 3 — Conservation Risk Analysis
-Foraging hotspots mapped using 2D kernel density estimation on foraging-state GPS points (0–360° longitude normalisation to handle dateline crossing). Fixes classified by point-in-polygon against World EEZ v12 and by the 60°S line. CCAMLR longline fishing effort (2013) analysed temporally. Individual birds clustered into risk groups using k-means on four foraging strategy metrics.
+### Phase 3 — Foraging hotspots, EEZ classification and clustering
+Foraging hotspots mapped using 2D kernel density estimation on foraging-state GPS points (0–360° longitude normalisation to handle dateline crossing). Fixes classified by point-in-polygon against World EEZ v12 and by the 60°S line. CCAMLR longline fishing effort (2013) analysed temporally. Individual birds clustered into foraging-strategy groups A, B and C (13, 8 and 3 birds) using k-means on four foraging strategy metrics.
+
+In `bird_risk_profiles.csv`, the `strategy_group` column holds A/B/C. The legacy `risk_label` column holds Low risk/Medium risk/High risk, which correspond to A/B/C, and the legacy `risk_cluster` column holds the k-means cluster numbers 0/2/1 in the same order. The groups use no fishing data.
 
 **Scripts:** `python/phase3_conservation_risk.py`, `python/eez_classification.py`  
 **Outputs:** `data/processed/bird_risk_profiles.csv`, `data/processed/foraging_kde_grid.csv`, `data/processed/eez_zone_summary.csv`
 
 ### Phase 4 — Interactive Map
-Folium web map with Campbell Island-centred coordinate normalisation to maintain continuous flight path rendering across the dateline. Layers: individual bird tracks (risk-coloured, togglable), foraging heatmap, EEZ outlines (World EEZ v12), approximate CCAMLR Convention Area boundary. CCAMLR fishing effort circles are not drawn.
+Folium web map with Campbell Island-centred coordinate normalisation to maintain continuous flight path rendering across the dateline. Layers: individual bird tracks (coloured by foraging-strategy group, togglable), foraging heatmap, EEZ outlines (World EEZ v12), approximate CCAMLR Convention Area boundary, plus a minimap. CCAMLR fishing effort circles are not drawn.
 
 **Scripts:** `python/phase4_interactive_map.py`  
 **Outputs:** `outputs/maps/albatross_interactive_map.html`

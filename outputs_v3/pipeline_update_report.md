@@ -1,5 +1,7 @@
 # Pipeline update report (8 November 2026)
 
+> **Naming note:** this report predates the rename. "Low / Medium / High risk" here are the legacy `risk_label` values, now called Foraging-strategy groups A / B / C. The groups use no fishing data.
+
 Numbers and evidence only.
 
 ## Commits on `fix/pipeline-corrected`

@@ -1,5 +1,7 @@
 # Old versus v2 versus v3
 
+> **Naming note:** this report predates the rename. "Low / Medium / High risk" here are the legacy `risk_label` values, now called Foraging-strategy groups A / B / C. The groups use no fishing data.
+
 - **old:** existing `data/processed/` (original data, colony point 169.15E, 52.55S).
 - **v2:** bird 90494 dates repaired, colony point 169.15E, 52.55S (`data/processed_v2/`).
 - **v3:** bird 90494 dates repaired, colony point 169.224E, 52.474S (`data/processed_v3/`).

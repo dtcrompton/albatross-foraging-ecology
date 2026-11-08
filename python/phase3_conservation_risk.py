@@ -1,17 +1,16 @@
 """
-Phase 3: Conservation Risk Analysis
+Phase 3: Foraging hotspots, EEZ classification and clustering
 Grey-headed Albatross Foraging Ecology Project
 
-Identifies where and when grey-headed albatrosses from Campbell Island
-face highest risk of overlap with longline fishing effort in the
-Southern Ocean and New Zealand EEZ.
+Maps foraging hotspots, compares the timing of foraging with CCAMLR longline
+effort, and clusters the birds into foraging-strategy groups A / B / C.
 
 Foraging fixes are classified by point-in-polygon against World EEZ v12, and against
 the 60S line for CCAMLR (see eez_classification.py). Every share is computed below.
 
-Outputs:
-    outputs/figures/phase3_risk_analysis.png  — 4-panel conservation figure
-    data/processed/bird_risk_profiles.csv     — per-bird risk metrics
+Outputs (file names are kept because other sites link to them):
+    outputs/figures/phase3_risk_analysis.png  — 4-panel figure
+    data/processed/bird_risk_profiles.csv     — per-bird metrics and strategy_group
     data/processed/foraging_kde_grid.csv      — KDE density grid
     data/processed/eez_zone_summary.csv       — zone shares by behaviour state
 """
@@ -27,6 +26,7 @@ from sklearn.preprocessing import StandardScaler
 
 from colony import COLONY_LAT, COLONY_LON
 from eez_classification import ZONES, Z_GAP, Z_NZ, Z_OUT, classify_fixes
+from strategy_groups import GROUP_COLOURS, GROUP_FROM_RISK_LABEL
 
 # --- Portfolio colours (light theme) ---
 MAUVE     = "#B794D9"
@@ -39,7 +39,7 @@ DARK_TEXT = "#1a1a1a"
 CCAMLR_DIR = Path('data/raw/ccamlr/CCAMLR_statistical bulletin_V37')
 
 print("\n" + "=" * 70)
-print("PHASE 3: CONSERVATION RISK ANALYSIS")
+print("PHASE 3: FORAGING HOTSPOTS, EEZ CLASSIFICATION AND CLUSTERING")
 print("=" * 70)
 
 
@@ -196,10 +196,10 @@ print("  ✓ Saved: data/processed/foraging_kde_grid.csv")
 
 
 # ============================================================================
-# PART 5: TEMPORAL RISK ANALYSIS
+# PART 5: TEMPORAL SYNCHRONY
 # ============================================================================
 
-print("\nTemporal risk analysis...")
+print("\nTemporal synchrony...")
 
 # Monthly foraging activity — all birds combined
 monthly_foraging = foraging_pts.groupby('month').size().reindex(
@@ -230,41 +230,39 @@ for m, v in effort_sorted.head(3).items():
 
 
 # ============================================================================
-# PART 6: INDIVIDUAL BIRD RISK PROFILING AND CLUSTERING
+# PART 6: FORAGING-STRATEGY GROUPS (K-MEANS)
 # ============================================================================
+# The risk_* names below are legacy column and variable names. They are kept so the
+# CSV stays compatible; the groups use no fishing data and do not measure risk.
 
-print("\nIndividual bird risk profiling...")
+print("\nForaging-strategy groups...")
 
-# Risk-relevant features from bird profiles:
-# - max_dist_km: birds that range further encounter more fishing zones
-# - prop_foraging: more time foraging = more exposure
-# - forage_centre_lat: more southerly foraging = more CCAMLR exposure
-# - total_dist_km: more ocean covered = more risk exposure
+# Foraging-strategy metrics from bird profiles:
+# - max_dist_km, prop_foraging, forage_centre_lat, total_dist_km
 
 risk_features = ['max_dist_km', 'prop_foraging', 'forage_centre_lat', 'total_dist_km']
 
 X = profiles[risk_features].copy()
 
-# Invert forage_centre_lat: more negative = further south = higher risk
-# Multiply by -1 so higher values = higher risk
+# Invert forage_centre_lat: multiply by -1 so higher values = further south
 X['forage_centre_lat'] = X['forage_centre_lat'] * -1
 
 scaler   = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# K-means with 3 clusters (low / medium / high risk)
+# K-means with 3 clusters
 N_CLUSTERS = 3
 kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=42, n_init=20)
 profiles['risk_cluster'] = kmeans.fit_predict(X_scaled)
 
-# Label clusters by mean max_dist (proxy for overall risk exposure)
+# Rank clusters by mean max_dist; risk_label holds the legacy names for those ranks
 cluster_means = profiles.groupby('risk_cluster')['max_dist_km'].mean()
 cluster_rank  = cluster_means.rank().astype(int)
 risk_labels   = {k: ['Low risk', 'Medium risk', 'High risk'][v - 1]
                  for k, v in cluster_rank.items()}
 profiles['risk_label'] = profiles['risk_cluster'].map(risk_labels)
 
-# Composite risk score (normalised, higher = higher risk)
+# Legacy composite score (normalised)
 profiles['risk_score'] = (
     (profiles['max_dist_km']   / profiles['max_dist_km'].max())   * 0.35 +
     (profiles['prop_foraging'] / profiles['prop_foraging'].max()) * 0.25 +
@@ -273,15 +271,18 @@ profiles['risk_score'] = (
     (profiles['total_dist_km'] / profiles['total_dist_km'].max()) * 0.15
 )
 
-print("\n  Risk cluster summary:")
-for label in ['Low risk', 'Medium risk', 'High risk']:
-    grp = profiles[profiles['risk_label'] == label]
-    print(f"\n  {label} ({len(grp)} birds):")
+# New last column, so every existing column keeps its position and values
+profiles['strategy_group'] = profiles['risk_label'].map(GROUP_FROM_RISK_LABEL)
+
+print("\n  Foraging-strategy group summary:")
+for group in GROUP_COLOURS:
+    grp = profiles[profiles['strategy_group'] == group]
+    print(f"\n  Foraging-strategy group {group} ({len(grp)} birds):")
     print(f"    Mean max distance:  {grp['max_dist_km'].mean():.0f} km")
     print(f"    Mean prop foraging: {grp['prop_foraging'].mean():.2f}")
     print(f"    Mean forage lat:    {grp['forage_centre_lat'].mean():.1f}°")
 
-# Save risk profiles
+# Save bird profiles
 profiles.to_csv('data/processed/bird_risk_profiles.csv', index=False)
 print("\n  ✓ Saved: data/processed/bird_risk_profiles.csv")
 
@@ -293,13 +294,11 @@ print("\n  ✓ Saved: data/processed/bird_risk_profiles.csv")
 print("\nGenerating visualisations...")
 
 fig = plt.figure(figsize=(20, 16), facecolor='white')
-fig.suptitle('Grey-headed Albatross — Phase 3: Conservation Risk Analysis',
+fig.suptitle('Grey-headed Albatross — Phase 3: Foraging hotspots, EEZ classification and clustering',
              fontsize=16, fontweight='bold', color=DARK_TEXT, y=1.01)
 
 month_names = ['Jan','Feb','Mar','Apr','May','Jun',
                'Jul','Aug','Sep','Oct','Nov','Dec']
-
-RISK_COLOURS = {'Low risk': GREEN, 'Medium risk': TEAL, 'High risk': WARM_RED}
 
 # --- Panel 1: KDE foraging hotspot map ---
 ax1 = fig.add_subplot(2, 2, 1, facecolor='#e8f4f8')
@@ -397,14 +396,14 @@ ax3.legend(lines1 + lines2, labels1 + labels2, fontsize=9,
 for spine in ax3.spines.values():
     spine.set_color(MID_GREY)
 
-# --- Panel 4: Individual risk scatter ---
+# --- Panel 4: Foraging-strategy groups scatter ---
 ax4 = fig.add_subplot(2, 2, 4, facecolor='white')
 
-for label, colour in RISK_COLOURS.items():
-    grp = profiles[profiles['risk_label'] == label]
+for group, colour in GROUP_COLOURS.items():
+    grp = profiles[profiles['strategy_group'] == group]
     ax4.scatter(grp['max_dist_km'], grp['prop_foraging'],
-                c=colour, s=120, alpha=0.85, edgecolors='white',
-                linewidths=1, label=label, zorder=3)
+                c=colour, s=120, edgecolors='white',
+                linewidths=1, label=f'Foraging-strategy group {group}', zorder=3)
     for _, row in grp.iterrows():
         ax4.annotate(str(row['bird_id']),
                      (row['max_dist_km'], row['prop_foraging']),
@@ -413,7 +412,7 @@ for label, colour in RISK_COLOURS.items():
 
 ax4.set_xlabel('Max Distance from Colony (km)', fontsize=11, color=DARK_TEXT)
 ax4.set_ylabel('Proportion of Track Foraging', fontsize=11, color=DARK_TEXT)
-ax4.set_title('Individual Risk Profiling (k-means, k=3)',
+ax4.set_title('Foraging-strategy groups (k-means)',
               fontsize=13, fontweight='bold', color=DARK_TEXT, pad=10)
 ax4.legend(fontsize=10, frameon=False)
 ax4.tick_params(colors=DARK_TEXT)
@@ -444,7 +443,7 @@ print("\n" + "=" * 70)
 print("PHASE 3 SUMMARY")
 print("=" * 70)
 
-high_risk = profiles[profiles['risk_label'] == 'High risk']
+group_c = profiles[profiles['strategy_group'] == 'C']
 
 print(f"""
   Foraging fix classification ({total_forage:,} fixes):
@@ -458,11 +457,11 @@ print(f"""
 
   Temporal synchrony index: {temporal_synchrony:.3f}
 
-  Individual risk clusters:
-    High risk birds ({len(high_risk)}):
-      Mean max distance:  {high_risk['max_dist_km'].mean():.0f} km
-      Mean prop foraging: {high_risk['prop_foraging'].mean():.2f}
-      Bird IDs: {[int(x) for x in high_risk['bird_id'].values]}
+  Foraging-strategy groups:
+    Group C birds ({len(group_c)}):
+      Mean max distance:  {group_c['max_dist_km'].mean():.0f} km
+      Mean prop foraging: {group_c['prop_foraging'].mean():.2f}
+      Bird IDs: {[int(x) for x in group_c['bird_id'].values]}
 """)
 
 print("=" * 70)

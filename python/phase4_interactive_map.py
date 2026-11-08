@@ -8,8 +8,9 @@ Produces a single self-contained HTML file combining:
     - CCAMLR longline effort circles: code kept but NOT drawn (see Part 7)
     - EEZ outlines from World EEZ v12 (toggleable)
     - Campbell Island breeding colony marker
-    - Per-bird popup statistics
-    - Risk cluster labelling
+    - Per-bird popup statistics (carried by the foraging-centre markers, not drawn; see Part 5)
+    - Foraging-strategy group labelling
+    - Minimap
 
 Output:
     outputs/maps/albatross_interactive_map.html
@@ -18,7 +19,7 @@ Output:
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import HeatMap, MeasureControl
+from folium.plugins import HeatMap, MeasureControl, MiniMap
 from branca.element import MacroElement
 from jinja2 import Template
 from pathlib import Path
@@ -27,6 +28,7 @@ import shapely
 
 from colony import COLONY_LAT, COLONY_LON, normalize_lon
 from eez_classification import EEZ_LINES, features_near_tracks
+from strategy_groups import GROUP_COLOURS
 
 Path('outputs/maps').mkdir(parents=True, exist_ok=True)
 
@@ -39,12 +41,6 @@ BEHAVIOUR_COLOURS = {
     2: '#B794D9',  # Transiting — mauve
 }
 BEHAVIOUR_LABELS = {0: 'Resting', 1: 'Foraging', 2: 'Transiting'}
-
-RISK_COLOURS = {
-    'Low risk':    '#1a6b35',   # dark forest green
-    'Medium risk': '#1a3a6b',   # dark navy
-    'High risk':   '#8b1a1a',   # dark crimson
-}
 
 CAMPBELL_LAT = COLONY_LAT
 CAMPBELL_LON = COLONY_LON
@@ -74,9 +70,9 @@ effort_2013 = effort[
     (effort['gear_type_code'] == 'LLS')
 ].copy()
 
-# Build lookup of risk labels per bird
-risk_lookup = profiles.set_index('bird_id')[
-    ['risk_label', 'max_dist_km', 'total_dist_km',
+# Build lookup of foraging-strategy groups and statistics per bird
+group_lookup = profiles.set_index('bird_id')[
+    ['strategy_group', 'max_dist_km', 'total_dist_km',
      'prop_foraging', 'prop_transiting', 'prop_resting',
      'forage_centre_lat', 'forage_centre_lon']
 ].to_dict('index')
@@ -117,7 +113,8 @@ folium.TileLayer(
     name="CARTO Light"
 ).add_to(m)
 
-# Add measure control for usability
+# Add minimap and measure control for usability
+MiniMap(toggle_display=True).add_to(m)
 MeasureControl(position='topleft', primary_length_unit='kilometers').add_to(m)
 
 
@@ -168,16 +165,16 @@ for bird_id in bird_ids:
     if len(bird_data) < 2:
         continue
 
-    risk_info = risk_lookup.get(bird_id, {})
-    risk_label = risk_info.get('risk_label', 'Unknown')
-    track_colour = RISK_COLOURS.get(risk_label, '#888888')
+    risk_info = group_lookup.get(bird_id, {})
+    group = risk_info.get('strategy_group', 'Unknown')
+    track_colour = GROUP_COLOURS.get(group, '#888888')
 
     # Build popup HTML — shown when user clicks on the bird ID label
     popup_html = f"""
     <div style="font-family:sans-serif; font-size:13px; width:220px">
         <b>Bird {bird_id}</b>
         <hr style="margin:4px 0">
-        <b>Risk profile:</b> {risk_label}<br>
+        <b>Foraging-strategy group:</b> {group}<br>
         <b>Max distance:</b> {risk_info.get('max_dist_km', 'N/A'):.0f} km<br>
         <b>Total distance:</b> {risk_info.get('total_dist_km', 'N/A'):.0f} km<br>
         <hr style="margin:4px 0">
@@ -195,7 +192,7 @@ for bird_id in bird_ids:
     # Create the FeatureGroup for this bird
     # show=True means visible by default; set to False for cleaner initial view
     bird_group = folium.FeatureGroup(
-        name=f"Bird {bird_id} ({risk_label})",
+        name=f"Bird {bird_id} (group {group})",
         show=False
     )
 
@@ -212,7 +209,7 @@ for bird_id in bird_ids:
         fill_color=track_colour,
         fill_opacity=0.9,
         popup=folium.Popup(popup_html, max_width=240),
-        tooltip=f"Bird {bird_id} — {risk_label} — click for details"
+        tooltip=f"Bird {bird_id} — foraging-strategy group {group} — click for details"
     ).add_to(centres_group)
 
     lons = bird_data['location-long'].values
@@ -224,7 +221,7 @@ for bird_id in bird_ids:
         locations=coords,
         color=track_colour,
         weight=2.5,
-        opacity=0.9
+        opacity=1.0
     ).add_to(bird_group)
 
     bird_group.add_to(m)
@@ -429,11 +426,11 @@ print(f"  ✓ EEZ outlines: {len(eez_near)} features, tolerance {EEZ_SIMPLIFY_DE
 
 
 # ============================================================================
-# PART 9: RISK CLUSTER LEGEND AND LAYER CONTROL
+# PART 9: FORAGING-STRATEGY GROUP LEGEND AND LAYER CONTROL
 # ============================================================================
 
 # Add a custom HTML legend explaining the colour coding
-risk_counts = profiles['risk_label'].value_counts()
+group_counts = profiles['strategy_group'].value_counts()
 legend_html = f"""
 <div style="
     position: fixed;
@@ -443,10 +440,10 @@ legend_html = f"""
     font-family: sans-serif; font-size: 12px; line-height: 1.8;
     min-width: 190px;
 ">
-    <b style="font-size:13px">Bird risk profile</b><br>
-    <span style="color:#7FAD87">●</span> Low risk ({risk_counts.get('Low risk', 0)} birds)<br>
-    <span style="color:#9BC4CB">●</span> Medium risk ({risk_counts.get('Medium risk', 0)} birds)<br>
-    <span style="color:#D9947F">●</span> High risk ({risk_counts.get('High risk', 0)} birds)<br>
+    <b style="font-size:13px">Foraging-strategy group</b><br>
+    <span style="color:{GROUP_COLOURS['A']}">●</span> Group A ({group_counts.get('A', 0)} birds)<br>
+    <span style="color:{GROUP_COLOURS['B']}">●</span> Group B ({group_counts.get('B', 0)} birds)<br>
+    <span style="color:{GROUP_COLOURS['C']}">●</span> Group C ({group_counts.get('C', 0)} birds)<br>
     <hr style="margin:6px 0">
     <b style="font-size:13px">Foraging heatmap</b><br>
     <span style="color:#4575b4">■</span> Low density<br>
@@ -457,8 +454,7 @@ legend_html = f"""
     <span style="color:#333333">—</span> EEZ outlines (World EEZ v12)<br>
     <hr style="margin:6px 0">
     <i style="color:#888; font-size:10px">
-    Bird tracks: toggle in layer control<br>
-    Click foraging centre ● for stats
+    Bird tracks: toggle in layer control
     </i>
 </div>
 """
@@ -495,6 +491,7 @@ print(f"""
     CCAMLR fishing effort:     not drawn (see Part 7)
     EEZ outlines:              {len(eez_near)} features, tolerance {EEZ_SIMPLIFY_DEGREES} degrees
     CCAMLR boundary:           60°S approximate line
+    Minimap:                   bottom right, toggleable
 
   Open in browser:
     open outputs/maps/albatross_interactive_map.html
