@@ -19,6 +19,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib.ticker import FuncFormatter
 from pathlib import Path
 from scipy.stats import gaussian_kde
 from sklearn.cluster import KMeans
@@ -307,8 +308,11 @@ ax1 = fig.add_subplot(2, 2, 1, facecolor='#e8f4f8')
 # Plot KDE as filled contours
 level_percentiles = np.linspace(10, 99, 12)
 levels = np.percentile(ZZ[ZZ > 0], level_percentiles)
+# Display only: extend='max' fills the densest area above the top level, and one colour
+# step per level gives a visible gradient across levels that span many orders of magnitude
 cf = ax1.contourf(LON_MESH, LAT_MESH, ZZ, levels=levels,
-                  cmap='YlOrRd', alpha=0.85)
+                  cmap='YlOrRd', alpha=0.85, extend='max',
+                  norm=mcolors.BoundaryNorm(levels, ncolors=256, extend='max'))
 ax1.contour(LON_MESH, LAT_MESH, ZZ, levels=levels,
             colors='white', alpha=0.3, linewidths=0.5)
 
@@ -381,7 +385,9 @@ ax3_twin.plot(months,
 
 ax3.set_xlabel('Month (2013)', fontsize=11, color=DARK_TEXT)
 ax3.set_ylabel('Foraging GPS points', fontsize=11, color=GREEN)
-ax3_twin.set_ylabel('CCAMLR hooks set', fontsize=11, color=WARM_RED)
+ax3_twin.set_ylabel('CCAMLR hooks set (millions)', fontsize=11, color=WARM_RED)
+ax3_twin.set_ylim(bottom=0)  # both axes start at zero
+ax3_twin.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{value / 1e6:.0f}'))
 ax3.set_title(f'Temporal Synchrony (index = {temporal_synchrony:.2f})',
               fontsize=13, fontweight='bold', color=DARK_TEXT, pad=10)
 ax3.set_xticks(months)
@@ -393,7 +399,7 @@ ax3.grid(True, alpha=0.2, color=MID_GREY, axis='y')
 lines1, labels1 = ax3.get_legend_handles_labels()
 lines2, labels2 = ax3_twin.get_legend_handles_labels()
 ax3.legend(lines1 + lines2, labels1 + labels2, fontsize=9,
-           frameon=False, loc='upper left')
+           frameon=False, loc='upper center')
 for spine in ax3.spines.values():
     spine.set_color(MID_GREY)
 
@@ -406,10 +412,14 @@ for group, colour in GROUP_COLOURS.items():
                 c=colour, s=120, edgecolors='white',
                 linewidths=1, label=f'Foraging-strategy group {group}', zorder=3)
     for _, row in grp.iterrows():
+        # These two would sit on a neighbouring bird, so their labels go to the left
+        label_left = row['bird_id'] in (90407, 90494)
         ax4.annotate(str(row['bird_id']),
                      (row['max_dist_km'], row['prop_foraging']),
                      fontsize=6, color=DARK_TEXT,
-                     xytext=(4, 4), textcoords='offset points')
+                     xytext=(-6, 4) if label_left else (4, 4),
+                     ha='right' if label_left else 'left',
+                     textcoords='offset points')
 
 ax4.set_xlabel('Max Distance from Colony (km)', fontsize=11, color=DARK_TEXT)
 ax4.set_ylabel('Proportion of Track Foraging', fontsize=11, color=DARK_TEXT)

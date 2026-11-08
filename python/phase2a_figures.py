@@ -142,7 +142,9 @@ ax4.set_yticklabels([str(b) for b in sorted_profiles['bird_id']], fontsize=7,
 ax4.set_xlabel('Proportion of Track', fontsize=11, color=DARK_TEXT)
 ax4.set_title('Time Budget per Bird', fontsize=13, fontweight='bold',
               color=DARK_TEXT)
-ax4.legend(handles=legend_patches, fontsize=9, frameon=False, loc='lower right')
+# Below the axes, level with the x-axis label, so it does not cover the bars
+ax4.legend(handles=legend_patches, fontsize=9, frameon=False, ncol=3,
+           loc='upper right', bbox_to_anchor=(1.0, -0.045))
 ax4.tick_params(colors=DARK_TEXT)
 ax4.grid(True, alpha=0.2, color=MID_GREY, axis='x')
 for spine in ax4.spines.values():
