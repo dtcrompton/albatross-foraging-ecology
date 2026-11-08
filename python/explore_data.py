@@ -7,12 +7,14 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from colony import COLONY_LAT, COLONY_LON
+
 print("\n" + "="*70)
 print("Loading albatross tracking data...")
 print("="*70)
 
 # Load data
-df = pd.read_csv('data/raw/Grey-headed albatross, New Zealand (data from Torres et al. 2017).csv')
+df = pd.read_csv('data/raw/albatross_tracks_corrected.csv')
 
 print("\n" + "="*70)
 print("DATASET OVERVIEW")
@@ -97,8 +99,8 @@ if 'location-long' in df.columns and 'location-lat' in df.columns:
     print(f"Latitude range: {df['location-lat'].min():.2f}° to {df['location-lat'].max():.2f}°")
     
     # Campbell Island location (breeding site)
-    campbell_lat = -52.55
-    campbell_lon = 169.15
+    campbell_lat = COLONY_LAT
+    campbell_lon = COLONY_LON
     
     print(f"\nCampbell Island (breeding site): {campbell_lat}°, {campbell_lon}°")
     

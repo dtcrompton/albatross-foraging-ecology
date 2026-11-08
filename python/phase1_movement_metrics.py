@@ -16,6 +16,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import radians, sin, cos, sqrt, atan2, pi
 
+from colony import COLONY_LAT, COLONY_LON
+
 plt.style.use('dark_background')
 
 print("\n" + "=" * 70)
@@ -29,7 +31,9 @@ print("=" * 70)
 
 print("\nLoading data...")
 
-df = pd.read_csv('data/raw/albatross_tracks.csv')
+# Output of phase0_repair_dates.py, without its two audit columns
+df = pd.read_csv('data/raw/albatross_tracks_corrected.csv').drop(
+    columns=['timestamp_original', 'timestamp_repaired'])
 df['timestamp'] = pd.to_datetime(df['timestamp'])
 df = df.sort_values(['individual-local-identifier', 'timestamp']).reset_index(drop=True)
 
@@ -91,9 +95,9 @@ def turning_angle(bearing_in, bearing_out):
 
 print("\nCalculating movement metrics...")
 
-# Campbell Island breeding colony coordinates
-CAMPBELL_LON = 169.15
-CAMPBELL_LAT = -52.55
+# Colony reference point: the deployment site (see colony.py)
+CAMPBELL_LON = COLONY_LON
+CAMPBELL_LAT = COLONY_LAT
 
 # --- Distance from colony ---
 df['dist_from_campbell'] = df.apply(

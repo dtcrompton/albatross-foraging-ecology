@@ -6,17 +6,14 @@ Identifies where and when grey-headed albatrosses from Campbell Island
 face highest risk of overlap with longline fishing effort in the
 Southern Ocean and New Zealand EEZ.
 
-Key finding from data exploration:
-    99.1% of foraging occurs north of 60°S — primarily in New Zealand's
-    EEZ and FAO Area 81, not the CCAMLR Convention Area. A complete
-    spatial risk analysis requires NZ MPI fisheries data; Phase 3 uses
-    CCAMLR data for temporal pattern analysis and KDE/individual
-    profiling for the spatial component.
+Foraging fixes are classified by point-in-polygon against World EEZ v12, and against
+the 60S line for CCAMLR (see eez_classification.py). Every share is computed below.
 
 Outputs:
     outputs/figures/phase3_risk_analysis.png  — 4-panel conservation figure
     data/processed/bird_risk_profiles.csv     — per-bird risk metrics
     data/processed/foraging_kde_grid.csv      — KDE density grid
+    data/processed/eez_zone_summary.csv       — zone shares by behaviour state
 """
 
 import pandas as pd
@@ -27,6 +24,9 @@ from pathlib import Path
 from scipy.stats import gaussian_kde
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+
+from colony import COLONY_LAT, COLONY_LON
+from eez_classification import ZONES, Z_GAP, Z_NZ, Z_OUT, classify_fixes
 
 # --- Portfolio colours (light theme) ---
 MAUVE     = "#B794D9"
@@ -109,33 +109,43 @@ monthly_effort = effort_2013.groupby('month').agg(
 # PART 3: MANAGEMENT ZONE BREAKDOWN
 # ============================================================================
 
-print("\nClassifying foraging points by management zone...")
+print("\nClassifying fixes against World EEZ v12...")
 
 foraging_pts = df[df['behaviour'] == 1].copy()
 
-# Define zones by latitude
-# CCAMLR Convention Area: roughly south of 60°S in the Pacific sector
-# NZ EEZ: Campbell Island (52.5°S) extends ~200nm = ~3.7° latitude
-# High seas: north of NZ EEZ, south of 60°S
-CCAMLR_BOUNDARY = -60.0
-NZ_EEZ_BOUNDARY = -48.8  # approximate northern extent of NZ subantarctic EEZ
+zone_all, south_all = classify_fixes(df['location-long'], df['location-lat'])
+df['zone'] = zone_all
+df['south_of_60S'] = south_all
+foraging_pts['zone'] = df.loc[foraging_pts.index, 'zone']
+foraging_pts['south_of_60S'] = df.loc[foraging_pts.index, 'south_of_60S']
 
-def zone(lat):
-    if lat < CCAMLR_BOUNDARY:
-        return 'CCAMLR Convention Area'
-    elif lat < NZ_EEZ_BOUNDARY:
-        return 'NZ EEZ / Subantarctic'
-    else:
-        return 'High Seas / FAO 81'
-
-foraging_pts['zone'] = foraging_pts['location-lat'].apply(zone)
-
-zone_counts = foraging_pts['zone'].value_counts()
 total_forage = len(foraging_pts)
+n_nz = int((foraging_pts['zone'] == Z_NZ).sum())
+n_out = int((foraging_pts['zone'] == Z_OUT).sum())
+n_south = int(foraging_pts['south_of_60S'].sum())
+n_out_north = int(((foraging_pts['zone'] == Z_OUT) & ~foraging_pts['south_of_60S']).sum())
+n_gap = int((foraging_pts['zone'] == Z_GAP).sum())
 
-print("\n  Foraging point distribution by management zone:")
-for zone_name, count in zone_counts.items():
-    print(f"    {zone_name:35s}: {count:6,} ({count/total_forage*100:.1f}%)")
+print(f"\n  Foraging fixes: {total_forage:,}")
+print(f"    Inside New Zealand EEZ:         {n_nz:6,} ({n_nz/total_forage*100:.2f}%)")
+print(f"    Outside all EEZs:               {n_out:6,} ({n_out/total_forage*100:.2f}%)")
+print(f"    South of 60S:                   {n_south:6,} ({n_south/total_forage*100:.2f}%)")
+print(f"    North of or on 60S:             {total_forage-n_south:6,} ({(total_forage-n_south)/total_forage*100:.2f}%)")
+
+summary_rows = []
+for state, group in [('Foraging', df[df['behaviour'] == 1]),
+                     ('Transiting', df[df['behaviour'] == 2]),
+                     ('Resting', df[df['behaviour'] == 0]),
+                     ('All fixes', df)]:
+    for z in ZONES:
+        count = int((group['zone'] == z).sum())
+        summary_rows.append({'state': state, 'measure': z, 'count': count,
+                             'percent': count / len(group) * 100})
+    count = int(group['south_of_60S'].sum())
+    summary_rows.append({'state': state, 'measure': 'South of 60S', 'count': count,
+                         'percent': count / len(group) * 100})
+pd.DataFrame(summary_rows).to_csv('data/processed/eez_zone_summary.csv', index=False)
+print("  ✓ Saved: data/processed/eez_zone_summary.csv")
 
 
 # ============================================================================
@@ -303,7 +313,7 @@ ax1.contour(LON_MESH, LAT_MESH, ZZ, levels=levels,
             colors='white', alpha=0.3, linewidths=0.5)
 
 # Campbell Island (in 0-360 space it's at 169°)
-ax1.scatter(169.15, -52.55, c=DARK_TEXT, s=200, marker='*',
+ax1.scatter(COLONY_LON, COLONY_LAT, c=DARK_TEXT, s=200, marker='*',
             edgecolors='white', linewidths=1.5, zorder=5,
             label='Campbell Island')
 
@@ -331,8 +341,10 @@ cb.update_ticks()
 # --- Panel 2: Management zone breakdown ---
 ax2 = fig.add_subplot(2, 2, 2, facecolor='white')
 
-zone_order  = ['CCAMLR Convention Area', 'NZ EEZ / Subantarctic', 'High Seas / FAO 81']
-zone_values = [zone_counts.get(z, 0) / total_forage * 100 for z in zone_order]
+# Three exclusive groups; south of 60S is also outside all EEZs
+assert n_nz + n_out_north + n_south + n_gap == total_forage
+zone_order  = ['South of 60°S\n(outside all EEZs)', 'Outside all EEZs,\nnorth of 60°S', 'Inside New Zealand EEZ']
+zone_values = [n_south / total_forage * 100, n_out_north / total_forage * 100, n_nz / total_forage * 100]
 zone_colours= [MAUVE, GREEN, TEAL]
 
 bars = ax2.barh(zone_order, zone_values, color=zone_colours, alpha=0.85,
@@ -340,11 +352,11 @@ bars = ax2.barh(zone_order, zone_values, color=zone_colours, alpha=0.85,
 
 for bar, val in zip(bars, zone_values):
     ax2.text(val + 0.5, bar.get_y() + bar.get_height() / 2,
-             f'{val:.1f}%', va='center', fontsize=11,
+             f'{val:.2f}%', va='center', fontsize=11,
              color=DARK_TEXT, fontweight='bold')
 
-ax2.set_xlabel('% of Foraging Points', fontsize=11, color=DARK_TEXT)
-ax2.set_title('Foraging Zone — Management Context',
+ax2.set_xlabel(f'% of {total_forage:,} Foraging Fixes', fontsize=11, color=DARK_TEXT)
+ax2.set_title('Foraging Fixes by Zone — World EEZ v12 and 60°S',
               fontsize=13, fontweight='bold', color=DARK_TEXT, pad=10)
 ax2.set_xlim(0, 105)
 ax2.tick_params(colors=DARK_TEXT)
@@ -412,6 +424,7 @@ for spine in ax4.spines.values():
 fig.text(
     0.5, -0.01,
     "Data: Torres et al. 2017 (Movebank) · CCAMLR Statistical Bulletin Vol. 37 · "
+    "EEZ: Flanders Marine Institute (2023), CC BY 4.0 · "
     "Analysis: D. Crompton — dtcrompton.github.io",
     ha='center', fontsize=8, color=MID_GREY, style='italic'
 )
@@ -434,10 +447,10 @@ print("=" * 70)
 high_risk = profiles[profiles['risk_label'] == 'High risk']
 
 print(f"""
-  Foraging zone distribution:
-    NZ EEZ / Subantarctic (primary zone): {zone_counts.get('NZ EEZ / Subantarctic', 0)/total_forage*100:.1f}%
-    CCAMLR Convention Area:               {zone_counts.get('CCAMLR Convention Area', 0)/total_forage*100:.1f}%
-    High Seas / FAO 81:                   {zone_counts.get('High Seas / FAO 81', 0)/total_forage*100:.1f}%
+  Foraging fix classification ({total_forage:,} fixes):
+    Inside New Zealand EEZ: {n_nz/total_forage*100:.2f}%
+    Outside all EEZs:       {n_out/total_forage*100:.2f}%
+    South of 60S:           {n_south/total_forage*100:.2f}%
 
   lon_dir = 'E' if peak_lon >= 0 else 'W'
   ...
@@ -450,12 +463,6 @@ print(f"""
       Mean max distance:  {high_risk['max_dist_km'].mean():.0f} km
       Mean prop foraging: {high_risk['prop_foraging'].mean():.2f}
       Bird IDs: {[int(x) for x in high_risk['bird_id'].values]}
-
-  Conservation note:
-    99.1% of foraging occurs in NZ EEZ / subantarctic waters not
-    covered by CCAMLR. A complete bycatch risk assessment requires
-    NZ Ministry for Primary Industries fisheries data (FAO Area 81 /
-    SPRFMO Convention Area).
 """)
 
 print("=" * 70)

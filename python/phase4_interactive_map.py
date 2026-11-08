@@ -5,7 +5,8 @@ Grey-headed Albatross Foraging Ecology Project
 Produces a single self-contained HTML file combining:
     - Individual bird GPS tracks (togglable, coloured by behaviour state)
     - Foraging hotspot heatmap
-    - CCAMLR longline fishing effort (scaled circle markers)
+    - CCAMLR longline effort circles: code kept but NOT drawn (see Part 7)
+    - EEZ outlines from World EEZ v12 (toggleable)
     - Campbell Island breeding colony marker
     - Per-bird popup statistics
     - Risk cluster labelling
@@ -18,7 +19,14 @@ import pandas as pd
 import numpy as np
 import folium
 from folium.plugins import HeatMap, MeasureControl
+from branca.element import MacroElement
+from jinja2 import Template
 from pathlib import Path
+import geopandas as gpd
+import shapely
+
+from colony import COLONY_LAT, COLONY_LON
+from eez_classification import EEZ_LINES, features_near_tracks
 
 Path('outputs/maps').mkdir(parents=True, exist_ok=True)
 
@@ -38,8 +46,8 @@ RISK_COLOURS = {
     'High risk':   '#8b1a1a',   # dark crimson
 }
 
-CAMPBELL_LAT =  -52.55
-CAMPBELL_LON =  169.15
+CAMPBELL_LAT = COLONY_LAT
+CAMPBELL_LON = COLONY_LON
 
 print("\n" + "=" * 70)
 print("PHASE 4: INTERACTIVE FOLIUM MAP")
@@ -330,7 +338,10 @@ for asd_code, total_hooks in effort_by_area.items():
     ).add_to(effort_group)
     areas_mapped += 1
 
-effort_group.add_to(m)
+# NOT DRAWN. CCAMLR_CENTROIDS above positions areas 5851 and 5852 at guessed coordinates near
+# 165E, whereas 58.5.1 and 58.5.2 are Kerguelen and Heard Island in the Indian Ocean. The other
+# centroids are approximate too, so the circles stay off the map until positions are sourced.
+# effort_group.add_to(m)
 print(f"  ✓ Fishing effort: {areas_mapped} CCAMLR areas mapped")
 
 
@@ -354,11 +365,74 @@ ccamlr_group.add_to(m)
 
 
 # ============================================================================
+# PART 8b: EEZ OUTLINES
+# ============================================================================
+
+print("Adding EEZ outlines...")
+
+EEZ_SIMPLIFY_DEGREES = 0.01   # about 1.1 km north-south at this tolerance
+EEZ_CREDIT = ('Flanders Marine Institute (2023), Maritime Boundaries Geodatabase, version 12, '
+              '<a href="https://www.marineregions.org/">https://www.marineregions.org/</a> (CC BY 4.0)')
+
+
+def normalize_coords(coords):
+    coords = np.array(coords, dtype=float)
+    coords[:, 0] = [normalize_lon(lon) for lon in coords[:, 0]]
+    return coords
+
+
+eez_near = features_near_tracks(df['location-long'], df['location-lat'])
+eez_lines = gpd.read_file(EEZ_LINES)
+eez_group = folium.FeatureGroup(name='EEZ outlines (World EEZ v12, Marine Regions)', show=True)
+eez_vertices_before = eez_vertices_after = 0
+
+for _, feature in eez_near.iterrows():
+    parts = list(feature.geometry.geoms) if hasattr(feature.geometry, 'geoms') else [feature.geometry]
+    # Same normalisation as the tracks; merging removes the artificial edge at 180 degrees
+    merged = shapely.union_all([shapely.transform(p, normalize_coords) for p in parts])
+    lines_here = eez_lines[(eez_lines.MRGID_EEZ1 == feature.MRGID) | (eez_lines.MRGID_EEZ2 == feature.MRGID)]
+    lines_here = shapely.union_all([shapely.transform(g, normalize_coords) for g in lines_here.geometry])
+    rings = []
+    for part in (merged.geoms if hasattr(merged, 'geoms') else [merged]):
+        rings.append(part.exterior)
+        # Keep interior rings that a boundary line runs along (non-land pockets), not coastlines
+        rings += [r for r in part.interiors
+                  if shapely.Polygon(r).area > 0.003 and r.distance(lines_here) < 0.02]
+    locations = []
+    for ring in rings:
+        eez_vertices_before += len(ring.coords)
+        simple = shapely.LineString(ring.coords).simplify(EEZ_SIMPLIFY_DEGREES)
+        eez_vertices_after += len(simple.coords)
+        locations.append([[round(y, 3), round(x, 3)] for x, y in simple.coords])
+    folium.PolyLine(locations=locations, color='#333333', weight=1.5, opacity=0.85,
+                    tooltip=feature.GEONAME).add_to(eez_group)
+
+eez_group.add_to(m)
+
+
+class AddAttribution(MacroElement):
+    """Add a credit line to the map's attribution control after the map is created."""
+    _template = Template("""{% macro script(this, kwargs) %}
+        {{ this._parent.get_name() }}.attributionControl.addAttribution({{ this.text|tojson }});
+    {% endmacro %}""")
+
+    def __init__(self, text):
+        super().__init__()
+        self.text = text
+
+
+m.add_child(AddAttribution(EEZ_CREDIT))
+print(f"  ✓ EEZ outlines: {len(eez_near)} features, tolerance {EEZ_SIMPLIFY_DEGREES} degrees, "
+      f"{eez_vertices_before:,} vertices reduced to {eez_vertices_after:,}")
+
+
+# ============================================================================
 # PART 9: RISK CLUSTER LEGEND AND LAYER CONTROL
 # ============================================================================
 
 # Add a custom HTML legend explaining the colour coding
-legend_html = """
+risk_counts = profiles['risk_label'].value_counts()
+legend_html = f"""
 <div style="
     position: fixed;
     bottom: 40px; left: 12px; z-index: 1000;
@@ -368,18 +442,17 @@ legend_html = """
     min-width: 190px;
 ">
     <b style="font-size:13px">Bird risk profile</b><br>
-    <span style="color:#7FAD87">●</span> Low risk (11 birds)<br>
-    <span style="color:#9BC4CB">●</span> Medium risk (10 birds)<br>
-    <span style="color:#D9947F">●</span> High risk (3 birds)<br>
+    <span style="color:#7FAD87">●</span> Low risk ({risk_counts.get('Low risk', 0)} birds)<br>
+    <span style="color:#9BC4CB">●</span> Medium risk ({risk_counts.get('Medium risk', 0)} birds)<br>
+    <span style="color:#D9947F">●</span> High risk ({risk_counts.get('High risk', 0)} birds)<br>
     <hr style="margin:6px 0">
     <b style="font-size:13px">Foraging heatmap</b><br>
     <span style="color:#4575b4">■</span> Low density<br>
     <span style="color:#ffffbf">■</span> Medium density<br>
     <span style="color:#d73027">■</span> High density<br>
     <hr style="margin:6px 0">
-    <span style="color:#D9947F">●</span> CCAMLR longline effort<br>
-    &nbsp;&nbsp;(size ∝ √hook count)<br>
     <span style="color:#B794D9">- -</span> CCAMLR boundary (~60°S)<br>
+    <span style="color:#333333">—</span> EEZ outlines (World EEZ v12)<br>
     <hr style="margin:6px 0">
     <i style="color:#888; font-size:10px">
     Bird tracks: toggle in layer control<br>
@@ -417,7 +490,8 @@ print(f"""
   Map layers:
     Individual bird tracks:    {len(bird_ids)} (togglable, off by default)
     Foraging heatmap:          {len(foraging_pts):,} points
-    CCAMLR fishing effort:     {areas_mapped} areas
+    CCAMLR fishing effort:     not drawn (see Part 7)
+    EEZ outlines:              {len(eez_near)} features, tolerance {EEZ_SIMPLIFY_DEGREES} degrees
     CCAMLR boundary:           60°S approximate line
 
   Open in browser:

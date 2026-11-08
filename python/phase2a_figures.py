@@ -24,8 +24,7 @@ DARK_TEXT = "#1a1a1a"
 STATE_COLOURS = {0: MID_GREY, 1: GREEN, 2: MAUVE}
 STATE_LABELS  = {0: 'Resting', 1: 'Foraging', 2: 'Transiting'}
 
-CAMPBELL_LON = 169.15
-CAMPBELL_LAT = -52.55
+from colony import COLONY_LAT as CAMPBELL_LAT, COLONY_LON as CAMPBELL_LON
 
 print("Loading data...")
 df = pd.read_csv('data/processed/tracks_with_behaviour.csv', parse_dates=['timestamp'])
@@ -200,7 +199,7 @@ for bird_id in df['individual-local-identifier'].unique():
 ax.scatter(CAMPBELL_LON, CAMPBELL_LAT, c=DARK_TEXT, s=300, marker='*',
            edgecolors='white', linewidths=1.5, zorder=5)
 
-ax.set_title('24 Grey-headed Albatrosses — One Breeding Season\nSouthern Ocean GPS Tracks, 2013',
+ax.set_title('24 Grey-headed Albatrosses\nSouthern Ocean GPS Tracks, 14 Oct to 12 Dec 2013',
              fontsize=16, fontweight='bold', color=DARK_TEXT, pad=16)
 ax.set_xlabel('Longitude (°E)', fontsize=11, color=DARK_TEXT)
 ax.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)

@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from hmmlearn import hmm
 
+from colony import COLONY_LAT, COLONY_LON
+
 plt.style.use('dark_background')
 
 PURPLE = '#B794D9'
@@ -236,7 +238,7 @@ for state in [0, 1, 2]:
                 c=STATE_COLOURS[state], s=0.3, alpha=0.4,
                 label=STATE_LABELS[state])
 
-ax1.scatter(169.15, -52.55, c='white', s=200, marker='*',
+ax1.scatter(COLONY_LON, COLONY_LAT, c='white', s=200, marker='*',
             edgecolors='red', linewidths=1.5, zorder=5,
             label='Campbell Island')
 ax1.set_xlabel('Longitude (°E)', fontsize=11)
