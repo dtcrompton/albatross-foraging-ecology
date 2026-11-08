@@ -21,6 +21,7 @@ WARM_RED  = "#D9947F"
 TEAL      = "#9BC4CB"
 MID_GREY  = "#AAAAAA"
 DARK_TEXT = "#1a1a1a"
+TEXT_GREY = "#666666"  # footer text, 5.7:1 against white
 
 STATE_COLOURS = {0: MID_GREY, 1: GREEN, 2: MAUVE}
 STATE_LABELS  = {0: 'Resting', 1: 'Foraging', 2: 'Transiting'}
@@ -157,7 +158,7 @@ fig.text(
     0.5, -0.01,
     "Data: Thompson et al. (2017), Movebank Data Repository · "
     "Analysis: D. Crompton — dtcrompton.github.io",
-    ha="center", fontsize=8, color=MID_GREY, style="italic"
+    ha="center", fontsize=8, color=TEXT_GREY, style="italic"
 )
 
 plt.tight_layout()
@@ -238,7 +239,7 @@ fig2.text(
     0.5, -0.02,
     "Data: Thompson et al. (2017), Movebank Data Repository · "
     "Analysis: D. Crompton — dtcrompton.github.io",
-    ha="center", fontsize=9, color=MID_GREY, style="italic"
+    ha="center", fontsize=9, color=TEXT_GREY, style="italic"
 )
 
 plt.savefig('outputs/figures/linkedin_tracks_map.png', dpi=200,
