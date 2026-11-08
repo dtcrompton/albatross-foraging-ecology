@@ -1,12 +1,12 @@
 # Portfolio assets
 
-Copies of the regenerated figures and map. Sizes are in bytes; "before" is the file at tag `pre-correction-2026-11-08`. The map copy contains the CARTO key in its tile URL, the same way as the original.
+Copies of the final figures and map. Sizes are in bytes; "before" is the file at commit `5f3fcf4`, before the label and presentation fixes. No analysis result or method changed. The map copy contains the CARTO key in its tile URL, the same way as the original.
 
 | File | Source | Before | After | What changed |
 |---|---|---|---|---|
-| `phase1_overview.png` | `outputs/figures/phase1_overview.png` | 304,274 | 299,435 | Bird 90494 dates repaired; deployment-site colony point; trip-duration and departure panels rebuilt. |
-| `phase2a_behaviour.png` | `outputs/figures/phase2a_behaviour.png` | 307,955 | 307,725 | Same corrections; written last by phase2a_figures.py. |
-| `phase2b_drivers.png` | `outputs/figures/phase2b_drivers.png` | 78,970 | 78,837 | Bird 90494 SST and chlorophyll rematched to repaired dates; distance feature uses the new colony point. |
-| `phase3_risk_analysis.png` | `outputs/figures/phase3_risk_analysis.png` | 409,422 | 421,789 | Zone panel replaced with the World EEZ v12 and 60S classification; synchrony 0.30; clusters 13 / 8 / 3; marker at the deployment site. |
-| `linkedin_tracks_map.png` | `outputs/figures/linkedin_tracks_map.png` | 230,238 | 228,076 | Title changed from "One Breeding Season" to the date range; marker at the deployment site. |
-| `albatross_interactive_map.html` | `outputs/maps/albatross_interactive_map.html` | 1,886,849 | 1,891,238 | EEZ outline layer and credit added; effort circles not drawn; legend counts computed; corrected tracks and heatmap. Foraging-centre markers remain hidden, as before. |
+| `phase1_overview.png` | `outputs/figures/phase1_overview.png` | 299,435 | 299,435 | Not changed and not regenerated. |
+| `phase2a_behaviour.png` | `outputs/figures/phase2a_behaviour.png` | 307,725 | 499,347 | Footer credit changed to Thompson et al. (2017). Map panel plots longitudes shifted to 0-360 for display, so tracks are no longer split at the dateline. |
+| `phase2b_drivers.png` | `outputs/figures/phase2b_drivers.png` | 78,837 | 86,217 | Footer credit changed to Thompson et al. (2017). Raw variable names on the importance axis replaced with plain labels. |
+| `phase3_risk_analysis.png` | `outputs/figures/phase3_risk_analysis.png` | 421,789 | 448,733 | Title and scatter panel renamed; risk labels replaced by Foraging-strategy groups A / B / C in colour-blind-safe colours. Footer credits changed to Thompson et al. (2017) and World EEZ v12. KDE colour bar labelled by percentile instead of repeating 0.000. File name kept because other sites link to it. |
+| `linkedin_tracks_map.png` | `outputs/figures/linkedin_tracks_map.png` | 228,076 | 228,804 | Footer credit changed to Thompson et al. (2017). |
+| `albatross_interactive_map.html` | `outputs/maps/albatross_interactive_map.html` | 1,891,238 | 1,892,378 | Foraging-strategy group names in legend and layer names; tracks and legend share the Phase 3 scatter colours; "Click foraging centre" legend line removed. **Minimap: restored** (bottom right, toggleable, default OpenStreetMap tiles). EEZ layer, credits, CCAMLR boundary, Campbell Island popup and key handling kept. Foraging-centre markers and their per-bird popups remain hidden, as before. |
