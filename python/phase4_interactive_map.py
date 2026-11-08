@@ -229,9 +229,6 @@ for bird_id in bird_ids:
 
     bird_group.add_to(m)
 
-# This group was built but never added to the map before 8 November 2026
-centres_group.add_to(m)
-
 print(f"  ✓ Added {len(bird_ids)} bird track layers")
 
 

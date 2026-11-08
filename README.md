@@ -65,7 +65,7 @@ Foraging hotspots mapped using 2D kernel density estimation on foraging-state GP
 **Outputs:** `data/processed/bird_risk_profiles.csv`, `data/processed/foraging_kde_grid.csv`, `data/processed/eez_zone_summary.csv`
 
 ### Phase 4 — Interactive Map
-Folium web map with Campbell Island-centred coordinate normalisation to maintain continuous flight path rendering across the dateline. Layers: individual bird tracks (risk-coloured, togglable), foraging centres with per-bird popup statistics from Phase 3 risk profiles, foraging heatmap, EEZ outlines (World EEZ v12), approximate CCAMLR Convention Area boundary. CCAMLR fishing effort circles are not drawn.
+Folium web map with Campbell Island-centred coordinate normalisation to maintain continuous flight path rendering across the dateline. Layers: individual bird tracks (risk-coloured, togglable), foraging heatmap, EEZ outlines (World EEZ v12), approximate CCAMLR Convention Area boundary. CCAMLR fishing effort circles are not drawn.
 
 **Scripts:** `python/phase4_interactive_map.py`  
 **Outputs:** `outputs/maps/albatross_interactive_map.html`
