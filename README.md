@@ -32,7 +32,6 @@ Bird 90494's timestamps in the source file, as downloaded from the Movebank Data
 | GPS tracking data | Thompson et al. (2017), Movebank Data Repository (see Data citations) | 93,474 GPS fixes, 24 birds, 14 October to 12 December 2013 |
 | Sea surface temperature | NASA JPL MUR SST v4.1 monthly (jplMURSST41mday), NOAA CoastWatch ERDDAP | 0.01° source resolution, used on a 0.1° grid (every 10th cell); monthly composites |
 | Chlorophyll-a | ESA CCI Ocean Colour v6.0 monthly (pmlEsaCCI60OceanColorMonthly), NOAA CoastWatch ERDDAP | 0.0417° source resolution, used on a 0.125° grid (every 3rd cell); monthly composites |
-| Bathymetry | GEBCO 2026 Grid, [gebco.net](https://www.gebco.net) | GeoTiff tile, 100°E–180°E, 65°S–40°S |
 | Fishing effort | CCAMLR Statistical Bulletin Vol. 37, [ccamlr.org](https://www.ccamlr.org) | Longline (LLS) gear, 2013 |
 | EEZ boundaries | World EEZ v12, Flanders Marine Institute (see Data citations) | Point-in-polygon test and map outlines |
 
@@ -139,7 +138,7 @@ albatross-foraging-ecology/
 
 ## Limitations
 
-**Environmental resolution:** SST and chlorophyll matched at monthly/~0.1° resolution. Fine-scale oceanographic features (fronts, eddies) that may drive local foraging decisions are not captured. Chlorophyll coverage is incomplete due to cloud masking in ocean colour imagery.
+**Environmental resolution:** SST (about 0.1°) and chlorophyll-a (about 0.125°) matched at monthly resolution. Fine-scale oceanographic features (fronts, eddies) that may drive local foraging decisions are not captured. Chlorophyll coverage is incomplete due to cloud masking in ocean colour imagery.
 
 **CCAMLR effort:** Area.csv contains no coordinate data, so fishing effort is not spatially matched to the tracks and effort circles are not drawn on the map.
 
@@ -183,8 +182,7 @@ Data sources retain their original licenses:
 - World EEZ v12 (Flanders Marine Institute): CC BY 4.0
 - MUR SST v4.1 monthly, from the file's license attribute: "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information."
 - ESA CCI Ocean Colour v6.0 monthly, from the file's license attribute: "ESA CCI, EOCIS, and C3S Data Policy: free and open access. When referencing, please use: Ocean Colour Climate Change Initiative dataset, Version 6.0, European Space Agency, available online at https://climate.esa.int/en/projects/ocean-colour/. We would also appreciate being notified of publications so that we can list them on the project website at https://climate.esa.int/en/projects/ocean-colour/, https://eocis.org/, https://climate.copernicus.eu/"
-- GEBCO bathymetry, from the file's license attribute: "The GEBCO Grid is placed in the public domain and may be used free of charge. Use of the GEBCO Grid indicates that the user accepts the conditions of use and disclaimer information: https://www.gebco.net/"
-- CCAMLR Statistical Bulletin Vol. 37: see provider terms (CCAMLR)
+- CCAMLR Statistical Bulletin Vol. 37, from the bulletin's documentation: "The data published in the Statistical Bulletin are in the public domain. Users are requested to acknowledge the source of these data as follows: CCAMLR. 2025. Statistical Bulletin, Vol. 37. www.ccamlr.org"
 
 ---
 
