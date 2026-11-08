@@ -37,6 +37,10 @@ WARM_RED  = "#D9947F"
 TEAL      = "#9BC4CB"
 MID_GREY  = "#AAAAAA"
 DARK_TEXT = "#1a1a1a"
+# Darker text versions of the series colours, at least 4.5:1 against white
+TEXT_GREEN = "#4A7A54"
+TEXT_RED   = "#A8533A"
+TEXT_GREY  = "#666666"
 
 CCAMLR_DIR = Path('data/raw/ccamlr/CCAMLR_statistical bulletin_V37')
 
@@ -336,7 +340,8 @@ xlabels = [f'{t}°E' if t <= 180 else f'{360-t}°W' for t in xticks]
 ax1.set_xlim(155, 220)  # display only: the KDE grid is unchanged
 ax1.set_xticks(xticks)
 ax1.set_xticklabels(xlabels, fontsize=9, color=DARK_TEXT)
-ax1.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)
+ax1.set_ylabel('Latitude', fontsize=11, color=DARK_TEXT)
+ax1.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{abs(value):g}°S'))
 ax1.set_title('Foraging Hotspots (KDE)', fontsize=13,
               fontweight='bold', color=DARK_TEXT, pad=10)
 hdr_handles = [mpatches.Patch(color=HDR_COLOURS[share], label=f'{share}% of density')
@@ -391,8 +396,8 @@ ax3_twin.plot(months,
               markersize=7, label='Longline hooks (CCAMLR)', zorder=5)
 
 ax3.set_xlabel('Month (2013)', fontsize=11, color=DARK_TEXT)
-ax3.set_ylabel('Foraging GPS points', fontsize=11, color=GREEN)
-ax3_twin.set_ylabel('CCAMLR hooks set (millions)', fontsize=11, color=WARM_RED)
+ax3.set_ylabel('Foraging GPS points', fontsize=11, color=TEXT_GREEN)
+ax3_twin.set_ylabel('CCAMLR hooks set (millions)', fontsize=11, color=TEXT_RED)
 ax3_twin.set_ylim(bottom=0)  # both axes start at zero
 ax3_twin.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{value / 1e6:.0f}'))
 ax3.set_title(f'Temporal Synchrony (index = {temporal_synchrony:.2f})',
@@ -400,7 +405,7 @@ ax3.set_title(f'Temporal Synchrony (index = {temporal_synchrony:.2f})',
 ax3.set_xticks(months)
 ax3.set_xticklabels(month_names, rotation=45, fontsize=9)
 ax3.tick_params(colors=DARK_TEXT)
-ax3_twin.tick_params(colors=WARM_RED)
+ax3_twin.tick_params(colors=TEXT_RED)
 ax3.grid(True, alpha=0.2, color=MID_GREY, axis='y')
 
 lines1, labels1 = ax3.get_legend_handles_labels()
@@ -419,11 +424,11 @@ for group, colour in GROUP_COLOURS.items():
                 c=colour, s=120, edgecolors='white',
                 linewidths=1, label=f'Foraging-strategy group {group}', zorder=3)
     for _, row in grp.iterrows():
-        # These two would sit on a neighbouring bird, so their labels go to the left
-        label_left = row['bird_id'] in (90407, 90494)
+        # These would sit on a neighbouring bird or cross the plot edge, so their labels go left
+        label_left = row['bird_id'] in (90407, 90494, 90493)
         ax4.annotate(str(row['bird_id']),
                      (row['max_dist_km'], row['prop_foraging']),
-                     fontsize=6, color=DARK_TEXT,
+                     fontsize=8, color=DARK_TEXT,
                      xytext=(-6, 4) if label_left else (4, 4),
                      ha='right' if label_left else 'left',
                      textcoords='offset points')
@@ -443,7 +448,7 @@ fig.text(
     "Data: Thompson et al. (2017), Movebank Data Repository · CCAMLR Statistical Bulletin Vol. 37 · "
     "EEZ: Flanders Marine Institute (2023), World EEZ v12, CC BY 4.0 · "
     "Analysis: D. Crompton — dtcrompton.github.io",
-    ha='center', fontsize=8, color=MID_GREY, style='italic'
+    ha='center', fontsize=8, color=TEXT_GREY, style='italic'
 )
 
 plt.tight_layout(h_pad=3)  # room for the caption under the KDE panel

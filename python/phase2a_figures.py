@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
+from matplotlib.ticker import FuncFormatter, MultipleLocator
 
 # --- Portfolio colours (light theme) ---
 MAUVE     = "#B794D9"
@@ -66,7 +67,9 @@ ax1.set_xticks(display_lons)
 ax1.set_xticklabels(['180°' if t == 180 else f'{t}°E' if t < 180 else f'{360 - t}°W'
                      for t in display_lons])
 ax1.set_xlabel('Longitude', fontsize=11, color=DARK_TEXT)
-ax1.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)
+ax1.set_ylabel('Latitude', fontsize=11, color=DARK_TEXT)
+ax1.yaxis.set_major_locator(MultipleLocator(5))
+ax1.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{abs(value):g}°S'))
 ax1.set_title('Spatial Distribution of Behaviour States', fontsize=13,
               fontweight='bold', color=DARK_TEXT)
 ax1.legend(handles=legend_patches + [
@@ -88,13 +91,13 @@ for state in plot_order:
     ax2.scatter(pts['timestamp'], pts['dist_from_campbell'],
                 c=STATE_COLOURS[state], s=3, alpha=0.7, edgecolors='none')
 
-ax2.axhline(y=50, color=WARM_RED, linestyle='--', linewidth=1.2,
-            label='Colony boundary (50 km)')
+colony_line = ax2.axhline(y=50, color=WARM_RED, linestyle='--', linewidth=1.2,
+                          label='Colony boundary (50 km)')
 ax2.set_xlabel('Date (2013)', fontsize=11, color=DARK_TEXT)
 ax2.set_ylabel('Distance from Campbell Island (km)', fontsize=11, color=DARK_TEXT)
 ax2.set_title(f'Bird {example_bird} — Behaviour Over Time', fontsize=13,
               fontweight='bold', color=DARK_TEXT)
-ax2.legend(handles=legend_patches, fontsize=9, frameon=False, loc='upper left')
+ax2.legend(handles=legend_patches + [colony_line], fontsize=9, frameon=False, loc='upper left')
 ax2.tick_params(colors=DARK_TEXT)
 ax2.grid(True, alpha=0.2, color=MID_GREY)
 for spine in ax2.spines.values():
@@ -209,7 +212,9 @@ ax.scatter(CAMPBELL_LON, CAMPBELL_LAT, c=DARK_TEXT, s=300, marker='*',
 ax.set_title('24 Grey-headed Albatrosses\nSouthern Ocean GPS Tracks, 14 Oct to 12 Dec 2013',
              fontsize=16, fontweight='bold', color=DARK_TEXT, pad=16)
 ax.set_xlabel('Longitude (°E)', fontsize=11, color=DARK_TEXT)
-ax.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)
+ax.set_ylabel('Latitude', fontsize=11, color=DARK_TEXT)
+ax.yaxis.set_major_locator(MultipleLocator(5))
+ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{abs(value):g}°S'))
 
 track_handle = Line2D([0], [0], color=MAUVE, alpha=0.5, linewidth=1.2,
                        label='Albatross GPS track')

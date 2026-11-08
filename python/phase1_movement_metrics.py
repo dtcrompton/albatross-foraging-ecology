@@ -14,6 +14,7 @@ Outputs:
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, MultipleLocator
 from math import radians, sin, cos, sqrt, atan2, pi
 
 from colony import COLONY_LAT, COLONY_LON
@@ -261,7 +262,9 @@ ax1.scatter(CAMPBELL_LON, CAMPBELL_LAT, c='red', s=200,
             marker='*', edgecolors='white', linewidths=1.5,
             label='Campbell Island', zorder=5)
 ax1.set_xlabel('Longitude (°E)', fontsize=11)
-ax1.set_ylabel('Latitude (°S)', fontsize=11)
+ax1.set_ylabel('Latitude', fontsize=11)
+ax1.yaxis.set_major_locator(MultipleLocator(5))
+ax1.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f'{abs(value):g}°S'))
 ax1.set_title('All 24 Bird Tracks', fontsize=13, fontweight='bold')
 ax1.legend(fontsize=9)
 ax1.grid(True, alpha=0.2)
