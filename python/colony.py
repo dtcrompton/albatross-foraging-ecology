@@ -6,6 +6,7 @@ values, as read on 8 November 2026) is used and a warning is printed.
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 REFERENCE_FILE = Path('data/raw/movebank_reference_data.csv')
@@ -24,3 +25,17 @@ def _load():
 
 
 COLONY_LAT, COLONY_LON = _load()
+
+# Longitudes are normalised around Campbell Island so that tracks crossing 180 stay continuous
+CENTER_LON = 169
+
+
+def normalize_lon(lon):
+    """Shift a longitude into the range [CENTER_LON - 180, CENTER_LON + 180)."""
+    return ((lon - CENTER_LON + 180) % 360) + CENTER_LON - 180
+
+
+def circular_mean_lon(lons):
+    """Circular mean of longitudes in degrees, normalised around Campbell Island."""
+    radians = np.radians(np.asarray(lons, dtype=float))
+    return float(normalize_lon(np.degrees(np.arctan2(np.sin(radians).mean(), np.cos(radians).mean()))))

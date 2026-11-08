@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from hmmlearn import hmm
 
-from colony import COLONY_LAT, COLONY_LON
+from colony import COLONY_LAT, COLONY_LON, circular_mean_lon
 
 plt.style.use('dark_background')
 
@@ -176,7 +176,7 @@ for bird_id in bird_ids:
     # Foraging centre of mass (mean location of foraging points)
     forage_pts = bdf[bdf['behaviour'] == 1]
     forage_lat = forage_pts['location-lat'].mean()
-    forage_lon = forage_pts['location-long'].mean()
+    forage_lon = circular_mean_lon(forage_pts['location-long'])
 
     # Temporal range
     start = bdf['timestamp'].min()

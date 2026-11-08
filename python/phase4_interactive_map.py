@@ -25,7 +25,7 @@ from pathlib import Path
 import geopandas as gpd
 import shapely
 
-from colony import COLONY_LAT, COLONY_LON
+from colony import COLONY_LAT, COLONY_LON, normalize_lon
 from eez_classification import EEZ_LINES, features_near_tracks
 
 Path('outputs/maps').mkdir(parents=True, exist_ok=True)
@@ -95,17 +95,7 @@ print(f"  GPS points (subsampled 4x): {len(df_sub):,}")
 # PART 2: DATELINE SPLIT FUNCTION
 # ============================================================================
 
-CENTER_LON = 169  # Campbell Island — all coordinates normalised around this
-
-def normalize_lon(lon):
-    """
-    Shift any longitude into the range [CENTER_LON-180, CENTER_LON+180].
-    This places Campbell Island at the centre of the coordinate system and
-    moves the 'break point' to -11°W (western Atlantic), where no albatross
-    data exists. A bird crossing from 179°E to -179°W becomes 179° to 181°
-    — a continuous 2° step with no dateline jump.
-    """
-    return ((lon - CENTER_LON + 180) % 360) + CENTER_LON - 180
+# CENTER_LON and normalize_lon are defined in colony.py
 
 # ============================================================================
 # PART 3: BUILD BASE MAP
@@ -155,6 +145,15 @@ folium.Marker(
 
 print("\nAdding individual bird tracks...")
 
+def format_lat(lat):
+    return f"{abs(lat):.1f}°{'S' if lat < 0 else 'N'}"
+
+
+def format_lon(lon):
+    lon = ((lon + 180) % 360) - 180   # back to -180 to 180 for labelling
+    return f"{abs(lon):.1f}°{'W' if lon < 0 else 'E'}"
+
+
 # Single FeatureGroup for all foraging centres — gives them one clean toggle
 centres_group = folium.FeatureGroup(
     name='Foraging centres (click for statistics)', show=True
@@ -188,8 +187,8 @@ for bird_id in bird_ids:
         &nbsp; Resting: {risk_info.get('prop_resting', 0)*100:.1f}%<br>
         <hr style="margin:4px 0">
         <b>Foraging centre:</b><br>
-        &nbsp; {risk_info.get('forage_centre_lat', 0):.1f}°S,
-               {risk_info.get('forage_centre_lon', 0):.1f}°E
+        &nbsp; {format_lat(risk_info.get('forage_centre_lat', 0))},
+               {format_lon(risk_info.get('forage_centre_lon', 0))}
     </div>
     """
 
@@ -206,7 +205,7 @@ for bird_id in bird_ids:
     forage_lon = risk_info.get('forage_centre_lon', CAMPBELL_LON)
 
     folium.CircleMarker(
-        location=[forage_lat, forage_lon],
+        location=[forage_lat, normalize_lon(forage_lon)],
         radius=6,
         color=track_colour,
         fill=True,
@@ -229,6 +228,9 @@ for bird_id in bird_ids:
     ).add_to(bird_group)
 
     bird_group.add_to(m)
+
+# This group was built but never added to the map before 8 November 2026
+centres_group.add_to(m)
 
 print(f"  ✓ Added {len(bird_ids)} bird track layers")
 
@@ -383,6 +385,9 @@ def normalize_coords(coords):
 
 eez_near = features_near_tracks(df['location-long'], df['location-lat'])
 eez_lines = gpd.read_file(EEZ_LINES)
+# Baselines follow the coast and are not outer limits
+eez_lines = eez_lines[~eez_lines.LINE_TYPE.isin(['Straight baseline', 'Normal baseline (official)',
+                                                 'Archipelagic baseline', 'Connection line'])]
 eez_group = folium.FeatureGroup(name='EEZ outlines (World EEZ v12, Marine Regions)', show=True)
 eez_vertices_before = eez_vertices_after = 0
 
