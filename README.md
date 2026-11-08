@@ -87,7 +87,7 @@ Folium web map with Campbell Island-centred coordinate normalisation to maintain
 ### Prerequisites
 ```bash
 Python 3.11+
-pip install pandas numpy matplotlib scipy scikit-learn hmmlearn xarray netCDF4 folium rasterio geopandas
+pip install pandas numpy matplotlib scipy scikit-learn hmmlearn xarray netCDF4 folium geopandas
 ```
 
 ### Data
@@ -96,8 +96,6 @@ Download `Grey-headed albatross, New Zealand (data from Torres et al. 2017).csv`
 World EEZ v12 GeoPackages from [marineregions.org](https://www.marineregions.org/), extracted to `data/external/eez/World_EEZ_v12_20231025_gpkg/`.
 
 CCAMLR Statistical Bulletin Vol. 37 zip from [ccamlr.org](https://www.ccamlr.org/en/document/data/ccamlr-statistical-bulletin-vol-37), extracted to `data/raw/ccamlr/`.
-
-GEBCO bathymetry tile (100°E–180°E, 65°S–40°S) from [gebco.net](https://www.gebco.net/data-products/gridded-bathymetry-data/), saved to `data/environmental/bathymetry/`.
 
 SST and chlorophyll downloaded automatically by `phase2b_environmental_drivers.py` via curl commands documented in the script header.
 
@@ -126,7 +124,7 @@ albatross-foraging-ecology/
 │   │   ├── albatross_tracks_corrected.csv # Written by Phase 0
 │   │   └── ccamlr/                       # CCAMLR Statistical Bulletin Vol. 37
 │   ├── processed/                        # Enriched CSVs from each phase
-│   ├── environmental/                    # SST, chlorophyll, bathymetry rasters
+│   ├── environmental/                    # SST and chlorophyll rasters
 │   └── external/eez/                     # World EEZ v12
 ├── python/                               # Analysis scripts (Phases 0–4)
 ├── outputs/
