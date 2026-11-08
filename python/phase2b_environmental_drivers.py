@@ -299,7 +299,15 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), facecolor='white')
 
 # --- Feature importance ---
 ax1.set_facecolor('white')
-ax1.barh(importances.index, importances.values, color=MAUVE, alpha=0.85)
+FEATURE_LABELS = {
+    'dist_from_campbell': 'Distance from colony',
+    'location-lat':       'Latitude',
+    'location-long':      'Longitude',
+    'sst':                'Sea surface temperature',
+    'chla':               'Chlorophyll-a',
+}
+ax1.barh([FEATURE_LABELS[f] for f in importances.index], importances.values,
+         color=MAUVE, alpha=0.85)
 ax1.set_xlabel('Feature Importance (Mean Decrease in Impurity)',
                fontsize=11, color=DARK_TEXT)
 ax1.set_title('What Predicts Foraging Behaviour?', fontsize=13,
@@ -328,7 +336,7 @@ for spine in ax2.spines.values():
 
 fig.text(
     0.5, -0.02,
-    "Data: Torres et al. 2017 (Movebank) · NASA JPL MUR SST · ESA CCI Ocean Colour · "
+    "Data: Thompson et al. (2017), Movebank Data Repository · NASA JPL MUR SST · ESA CCI Ocean Colour · "
     "Analysis: D. Crompton — dtcrompton.github.io",
     ha='center', fontsize=8, color=MID_GREY, style='italic'
 )

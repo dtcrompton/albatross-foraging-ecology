@@ -305,7 +305,8 @@ ax1 = fig.add_subplot(2, 2, 1, facecolor='#e8f4f8')
 
 # Convert back for plotting: longitudes > 180 → subtract 360
 # Plot KDE as filled contours
-levels = np.percentile(ZZ[ZZ > 0], np.linspace(10, 99, 12))
+level_percentiles = np.linspace(10, 99, 12)
+levels = np.percentile(ZZ[ZZ > 0], level_percentiles)
 cf = ax1.contourf(LON_MESH, LAT_MESH, ZZ, levels=levels,
                   cmap='YlOrRd', alpha=0.85)
 ax1.contour(LON_MESH, LAT_MESH, ZZ, levels=levels,
@@ -331,11 +332,11 @@ ax1.set_title('Foraging Hotspots (KDE)', fontsize=13,
 ax1.legend(fontsize=9, frameon=True, framealpha=0.8, loc='upper right')
 ax1.tick_params(colors=DARK_TEXT)
 
-from matplotlib import ticker
-cb = plt.colorbar(cf, ax=ax1, label='Foraging density', shrink=0.8)
-cb.formatter = ticker.ScalarFormatter(useMathText=True)
-cb.formatter.set_powerlimits((-4, -4))
-cb.update_ticks()
+# The levels span about 250 orders of magnitude, so no single scale can label them
+# (it printed 0.000 repeatedly). Label each level by the percentile that defines it.
+cb = plt.colorbar(cf, ax=ax1, label='Foraging density (percentile of non-zero grid cells)', shrink=0.8)
+cb.set_ticks(levels)
+cb.set_ticklabels([f'{p:.0f}' for p in level_percentiles])
 
 # --- Panel 2: Management zone breakdown ---
 ax2 = fig.add_subplot(2, 2, 2, facecolor='white')
@@ -422,8 +423,8 @@ for spine in ax4.spines.values():
 
 fig.text(
     0.5, -0.01,
-    "Data: Torres et al. 2017 (Movebank) · CCAMLR Statistical Bulletin Vol. 37 · "
-    "EEZ: Flanders Marine Institute (2023), CC BY 4.0 · "
+    "Data: Thompson et al. (2017), Movebank Data Repository · CCAMLR Statistical Bulletin Vol. 37 · "
+    "EEZ: Flanders Marine Institute (2023), World EEZ v12, CC BY 4.0 · "
     "Analysis: D. Crompton — dtcrompton.github.io",
     ha='center', fontsize=8, color=MID_GREY, style='italic'
 )

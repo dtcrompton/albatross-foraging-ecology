@@ -50,17 +50,22 @@ ax1 = fig.add_subplot(2, 2, 1, facecolor="white")
 
 # Transiting first (most numerous/spread), then Resting, then Foraging on top
 plot_order = [2, 0, 1]
+# Longitudes shifted to 0-360 for display only, so tracks are not split at the dateline
 for state in plot_order:
     pts = df[df['behaviour'] == state]
-    ax1.scatter(pts['location-long'], pts['location-lat'],
+    ax1.scatter(pts['location-long'] % 360, pts['location-lat'],
                 c=STATE_COLOURS[state], s=0.5, alpha=0.5,
                 label=STATE_LABELS[state], edgecolors='none')
 
-ax1.scatter(CAMPBELL_LON, CAMPBELL_LAT, c=DARK_TEXT, s=200, marker='*',
+ax1.scatter(CAMPBELL_LON % 360, CAMPBELL_LAT, c=DARK_TEXT, s=200, marker='*',
             edgecolors='white', linewidths=1, zorder=5,
             label='Campbell Island')
 
-ax1.set_xlabel('Longitude (°E)', fontsize=11, color=DARK_TEXT)
+display_lons = list(range(170, 220, 10))
+ax1.set_xticks(display_lons)
+ax1.set_xticklabels(['180°' if t == 180 else f'{t}°E' if t < 180 else f'{360 - t}°W'
+                     for t in display_lons])
+ax1.set_xlabel('Longitude', fontsize=11, color=DARK_TEXT)
 ax1.set_ylabel('Latitude (°S)', fontsize=11, color=DARK_TEXT)
 ax1.set_title('Spatial Distribution of Behaviour States', fontsize=13,
               fontweight='bold', color=DARK_TEXT)
@@ -145,7 +150,7 @@ for spine in ax4.spines.values():
 
 fig.text(
     0.5, -0.01,
-    "Data: Torres et al. 2017, Movebank Data Repository · "
+    "Data: Thompson et al. (2017), Movebank Data Repository · "
     "Analysis: D. Crompton — dtcrompton.github.io",
     ha="center", fontsize=8, color=MID_GREY, style="italic"
 )
@@ -224,7 +229,7 @@ fig2.subplots_adjust(bottom=0.05)
 
 fig2.text(
     0.5, -0.02,
-    "Data: Torres et al. 2017, Movebank Data Repository · "
+    "Data: Thompson et al. (2017), Movebank Data Repository · "
     "Analysis: D. Crompton — dtcrompton.github.io",
     ha="center", fontsize=9, color=MID_GREY, style="italic"
 )
