@@ -1,0 +1,113 @@
+
+======================================================================
+PHASE 3: CONSERVATION RISK ANALYSIS
+======================================================================
+
+Loading data...
+  GPS points:     93,474
+  Birds:          24
+  CCAMLR records: 7,344
+
+CCAMLR data exploration...
+
+  All gear types in CCAMLR Effort.csv:
+    LLS   :  3,246 records  (Hooks And Lines, Set Lines)
+    OTM   :  2,489 records  (Otter Trawls, Midwater)
+    OTB   :  1,070 records  (Otter Trawls, Bottom)
+    TM    :    187 records  (Midwater Trawls Nei)
+    OT    :    183 records  (Otter Trawls Nei)
+    TMB   :     81 records  (Beam Trawls, Midwater)
+    FPO   :     73 records  (Traps, Pots)
+    SX    :      6 records  (Seine Nets Nei)
+    JIG   :      5 records  (Squid Jigger)
+    TBB   :      2 records  (Beam Trawls, Bottom)
+    TX    :      2 records  (Trawls Nei)
+
+  Longline gear codes present: ['LLS']
+
+  CCAMLR longline effort (2013):
+    Records:     131
+    Total hooks: 58,010,421
+    Areas:       14
+
+Classifying foraging points by management zone...
+
+  Foraging point distribution by management zone:
+    NZ EEZ / Subantarctic              : 37,424 (97.5%)
+    High Seas / FAO 81                 :    593 (1.5%)
+    CCAMLR Convention Area             :    362 (0.9%)
+
+Calculating foraging hotspot KDE...
+  Evaluating KDE on grid (takes ~30 seconds)...
+  Peak foraging hotspot: -56.3°S, 177.1°W
+  ✓ Saved: data/processed_v3/foraging_kde_grid.csv
+
+Temporal risk analysis...
+  Temporal synchrony index: 0.295
+  (0 = no overlap, 1 = perfect overlap)
+
+  Monthly foraging peaks:
+    Month 11: 20,648 foraging points
+    Month 10: 15,631 foraging points
+    Month 12: 2,100 foraging points
+
+  CCAMLR longline effort peaks (2013):
+    Month  1: 10,610,622 hooks
+    Month  5: 6,298,019 hooks
+    Month 12: 6,281,776 hooks
+
+Individual bird risk profiling...
+
+  Risk cluster summary:
+
+  Low risk (13 birds):
+    Mean max distance:  974 km
+    Mean prop foraging: 0.45
+    Mean forage lat:    -56.5°
+
+  Medium risk (8 birds):
+    Mean max distance:  1170 km
+    Mean prop foraging: 0.38
+    Mean forage lat:    -56.2°
+
+  High risk (3 birds):
+    Mean max distance:  2557 km
+    Mean prop foraging: 0.36
+    Mean forage lat:    -53.9°
+
+  ✓ Saved: data/processed_v3/bird_risk_profiles.csv
+
+Generating visualisations...
+  ✓ Saved: outputs_v2/v3/figures/phase3_risk_analysis.png
+
+======================================================================
+PHASE 3 SUMMARY
+======================================================================
+
+  Foraging zone distribution:
+    NZ EEZ / Subantarctic (primary zone): 97.5%
+    CCAMLR Convention Area:               0.9%
+    High Seas / FAO 81:                   1.5%
+
+  lon_dir = 'E' if peak_lon >= 0 else 'W'
+  ...
+  Peak foraging hotspot: -56.3°S, 177.1°W
+
+  Temporal synchrony index: 0.295
+
+  Individual risk clusters:
+    High risk birds (3):
+      Mean max distance:  2557 km
+      Mean prop foraging: 0.36
+      Bird IDs: [2, 89518, 90493]
+
+  Conservation note:
+    99.1% of foraging occurs in NZ EEZ / subantarctic waters not
+    covered by CCAMLR. A complete bycatch risk assessment requires
+    NZ Ministry for Primary Industries fisheries data (FAO Area 81 /
+    SPRFMO Convention Area).
+
+======================================================================
+PHASE 3 COMPLETE
+======================================================================
+

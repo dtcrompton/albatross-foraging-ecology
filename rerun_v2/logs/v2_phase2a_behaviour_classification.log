@@ -1,0 +1,58 @@
+
+======================================================================
+PHASE 2a: HMM BEHAVIOUR CLASSIFICATION
+======================================================================
+
+Loading data...
+  93,474 GPS points, 24 birds
+
+Building feature matrix...
+  Feature matrix shape: (93474, 2)
+  Sequence lengths: min=1785, max=5959, mean=3895
+
+Fitting HMM (3 states, Gaussian emissions)...
+  Converged: True
+  Log-likelihood: -138760.0
+
+Labelling states by mean step length...
+  Raw state 0: mean step = 0.14 km, mean turning = 6.9°  (25,135 points)
+  Raw state 1: mean step = 4.04 km, mean turning = 9.9°  (29,960 points)
+  Raw state 2: mean step = 1.38 km, mean turning = 62.2°  (38,379 points)
+
+Labelled state summary:
+  Resting     : 25,135 points (26.9%) | mean step = 0.14 km | mean turning = 6.9°
+  Foraging    : 38,379 points (41.1%) | mean step = 1.38 km | mean turning = 62.2°
+  Transiting  : 29,960 points (32.1%) | mean step = 4.04 km | mean turning = 9.9°
+
+Building per-bird profiles...
+  Profiles built for 24 birds
+
+  Foraging strategy range:
+    Prop. foraging: 0.33 – 0.59
+    Max distance:   745 – 2715 km
+    Total distance: 3465 – 12285 km
+
+Generating visualisations...
+  ✓ Saved: outputs_v2/figures/phase2a_behaviour.png
+
+Saving outputs...
+  ✓ Saved: data/processed_v2/tracks_with_behaviour.csv
+  ✓ Saved: data/processed_v2/bird_profiles.csv
+
+======================================================================
+PHASE 2a SUMMARY
+======================================================================
+  Resting     : 25,135 points (26.9%)
+  Foraging    : 38,379 points (41.1%)
+  Transiting  : 29,960 points (32.1%)
+
+  Individual variation (prop. foraging):
+    Range:  0.33 – 0.59
+    StdDev: 0.060
+
+  bird_profiles.csv ready for Phase 5 artwork generation
+
+======================================================================
+PHASE 2a COMPLETE
+======================================================================
+

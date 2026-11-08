@@ -1,0 +1,54 @@
+
+======================================================================
+PHASE 1: MOVEMENT METRICS & TRIP SEGMENTATION
+======================================================================
+
+Loading data...
+Loaded 93,474 GPS points from 24 birds
+
+Calculating movement metrics...
+  Average speed:          20.5 km/h
+  Max speed:              138.0 km/h
+  Mean step length:       1.9 km
+  Mean abs turning angle: 30.6°
+
+Segmenting foraging trips...
+  Colony threshold:   50 km
+  Points at colony:   602
+  Points foraging:    92,872
+
+Calculating trip statistics...
+  Trips lasting 1+ days:      24
+  Average trip duration:      14.8 days
+  Longest trip:               21.8 days
+  Average max distance:       1237 km
+  Farthest point from colony: 2713 km
+
+Generating visualisations...
+  ✓ Saved: outputs_v2/v3/figures/phase1_overview.png
+
+Saving processed data...
+  ✓ Saved: data/processed_v3/tracks_with_metrics.csv
+  ✓ Saved: data/processed_v3/trip_statistics.csv
+
+======================================================================
+PHASE 1 SUMMARY
+======================================================================
+
+  GPS points:           93,474
+  Birds tracked:        24
+  Study period:         2013-10-14 → 2013-12-12
+  Duration:             59 days
+
+  Avg speed:            20.5 km/h
+  Max distance:         2713 km from Campbell Island
+
+  Foraging trips:       24
+  Avg trip duration:    14.8 days
+  Longest trip:         21.8 days
+
+  Turning angle data:   ✓ (ready for HMM in Phase 2)
+
+======================================================================
+PHASE 1 COMPLETE
+======================================================================
