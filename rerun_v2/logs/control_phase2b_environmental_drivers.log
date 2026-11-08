@@ -1,0 +1,92 @@
+
+======================================================================
+PHASE 2b: ENVIRONMENTAL DRIVERS OF FORAGING BEHAVIOUR
+======================================================================
+
+Loading track data...
+  GPS points:   93,474
+  Latitude:     -62.6 to -39.6
+  Longitude:    -180.0 to 180.0 (full range — dateline crossing)
+  Time:         2013-01-11 to 2013-12-12
+
+SST file already exists, skipping download: data/environmental/sst_2013.nc
+
+Chlorophyll file already exists, skipping download: data/environmental/chla_2013.nc
+
+Opening local environmental grids...
+  SST  — dims: {'time': 12, 'latitude': 241, 'longitude': 3600}, vars: ['sst']
+  Chla — dims: {'time': 12, 'latitude': 193, 'longitude': 2880}, vars: ['chlor_a']
+
+Matching 93,474 GPS points to nearest satellite observation...
+  (This takes a few minutes — progress printed every 10,000 points)
+    ... 0 / 93,474 (0%)
+    ... 10,000 / 93,474 (11%)
+    ... 20,000 / 93,474 (21%)
+    ... 30,000 / 93,474 (32%)
+    ... 40,000 / 93,474 (43%)
+    ... 50,000 / 93,474 (53%)
+    ... 60,000 / 93,474 (64%)
+    ... 70,000 / 93,474 (75%)
+    ... 80,000 / 93,474 (86%)
+    ... 90,000 / 93,474 (96%)
+    ... 0 / 93,474 (0%)
+    ... 10,000 / 93,474 (11%)
+    ... 20,000 / 93,474 (21%)
+    ... 30,000 / 93,474 (32%)
+    ... 40,000 / 93,474 (43%)
+    ... 50,000 / 93,474 (53%)
+    ... 60,000 / 93,474 (64%)
+    ... 70,000 / 93,474 (75%)
+    ... 80,000 / 93,474 (86%)
+    ... 90,000 / 93,474 (96%)
+
+  SST matched:  93,474 / 93,474 (100.0%)
+  Chla matched: 88,599 / 93,474 (94.8%)
+
+Fitting Random Forest classifier...
+  Train accuracy: 0.676
+  Test accuracy:  0.649
+
+              precision    recall  f1-score   support
+
+Not foraging       0.80      0.54      0.65     15696
+    Foraging       0.55      0.80      0.65     10884
+
+    accuracy                           0.65     26580
+   macro avg       0.67      0.67      0.65     26580
+weighted avg       0.70      0.65      0.65     26580
+
+  Feature importances:
+    chla                     : 0.106
+    sst                      : 0.153
+    location-long            : 0.194
+    location-lat             : 0.238
+    dist_from_campbell       : 0.309
+
+Generating visualisations...
+  ✓ Saved: outputs_v2/control/figures/phase2b_drivers.png
+
+Saving processed data...
+  ✓ Saved: data/processed_v2/control/tracks_with_env.csv
+
+======================================================================
+PHASE 2b SUMMARY
+======================================================================
+
+  Points with full environmental data: 88,599 / 93,474
+
+  Random Forest performance:
+    Train accuracy: 0.676
+    Test accuracy:  0.649
+
+  Top predictor: dist_from_campbell (0.309)
+
+  Mean SST  — foraging:     6.31 °C
+  Mean SST  — not foraging: 6.44 °C
+  Mean Chla — foraging:     0.2295 mg/m³
+  Mean Chla — not foraging: 0.2414 mg/m³
+
+======================================================================
+PHASE 2b COMPLETE
+======================================================================
+
